@@ -1,8 +1,8 @@
-import { randomUUID } from "node:crypto"
-import { FastifyInstance } from "fastify"
-import { z } from "zod"
+import { randomUUID } from 'node:crypto'
+import { FastifyInstance } from 'fastify'
+import { z } from 'zod'
 
-import { knex } from "../database"
+import { knex } from '../database'
 
 export async function transactionsRoutes(app: FastifyInstance) {
   app.get('/', async () => {
@@ -11,7 +11,7 @@ export async function transactionsRoutes(app: FastifyInstance) {
     return { transactions }
   })
 
-  app.get('/:id', async (request,) => {
+  app.get('/:id', async (request) => {
     const getTransactionParamsSchema = z.object({
       id: z.string().uuid(),
     })
@@ -19,7 +19,7 @@ export async function transactionsRoutes(app: FastifyInstance) {
     const { id } = getTransactionParamsSchema.parse(request.params)
 
     const transaction = await knex('transactions').where('id', id).first()
-    
+
     return { transaction }
   })
 
@@ -35,17 +35,19 @@ export async function transactionsRoutes(app: FastifyInstance) {
     const createTransactionBodySchema = z.object({
       title: z.string(),
       amount: z.number(),
-      type: z.enum(["credit", "debit"]),
+      type: z.enum(['credit', 'debit']),
     })
-    
-    const { title, amount, type } = createTransactionBodySchema.parse(request.body)
-  
+
+    const { title, amount, type } = createTransactionBodySchema.parse(
+      request.body,
+    )
+
     await knex('transactions').insert({
       id: randomUUID(),
       title,
-      amount: type == 'credit' ? amount : amount * -1,
+      amount: type === 'credit' ? amount : amount * -1,
     })
-    
+
     return reply.status(201).send()
   })
 }
